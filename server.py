@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, render_template, jsonify, flash
 from datetime import datetime
 app = Flask(__name__)
 import time
@@ -11,7 +11,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 def fetch_tiktok_video(item_id, language='zh-CN'):
     url = "https://www.tiktok.com/player/api/v1/items"
-    # 构建请求参数
     params = {
         "item_ids": item_id,
         "language": language,
@@ -33,10 +32,8 @@ def fetch_tiktok_video(item_id, language='zh-CN'):
         "history_len": "1",
         "security_verification_aid": ""
     }
-
     # 发送GET请求
     response = requests.get(url, params=params)
-
     # 检查响应状态码
     if response.status_code == 200:
         # 将响应内容解析为JSON
@@ -68,13 +65,16 @@ def download_videos(url, name):
     video_id = path.split('/')[-1]
     logging.info(f"downloading video_id:{video_id}")
     result = fetch_tiktok_video(video_id)
+    logging.info(f"result{result}")
     vedio_url =  result['items'][0]['video_info']['url_list'][0]
     logging.info(f"downloading  vedio_url:{vedio_url}")
     date = time.strftime("%Y%m%d", time.localtime())
-    
     download_file(vedio_url, f"tk_videos/{date}/{name}/{video_id}.mp4")
-    return f"http://120.79.221.205:6801/files/tk_videos/{date}/{name}/{video_id}.mp4"
+    return f"http://120.79.221.205:6800/tk_videos/{date}/{name}/{video_id}.mp4"
     
+@app.route('/', methods=['GET'])
+def index():
+    return render_template('index.html')
 
 @app.route('/down_tk_video', methods=['POST'])
 def down_tk_video():
@@ -85,7 +85,6 @@ def down_tk_video():
     name      =  data.get('name')
     if name is None:
         return jsonify({"error": "name provided"}), 400
-
     url  = data.get('url')
     if url is None:
         return jsonify({"error": "No url provided"}), 400
@@ -95,5 +94,14 @@ def down_tk_video():
 
     return jsonify({"ok": True, "vedio_urls": vedio_urls})
 
+@app.route('/download', methods=['POST'])
+def download():
+    product_name = request.form['product_name']
+    product_links = request.form['product_link']
+    vedio_urls=[]
+    cloud_url = download_videos(product_links,product_name)
+    vedio_urls.append(cloud_url)
+    return jsonify({"ok": True, "vedio_urls": vedio_urls}) 
+
 if __name__ == '__main__':
-    app.run(port=5001, debug=True)
+    app.run(host='0.0.0.0',port=5001, debug=True)
