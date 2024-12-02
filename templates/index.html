@@ -35,7 +35,7 @@
             padding: 10px;
             border-radius: 4px;
             margin-top: 20px;
-            width: 800px; /* 设置日志框的宽度 */
+            width: 1200px; /* 设置日志框的宽度 */
             overflow: auto; /* 设置滚动条 */
             white-space: pre-wrap; /* 保持换行 */
             word-wrap: break-word; /* 长单词换行 */
@@ -66,8 +66,10 @@
                 body: formData
             }).then(response => response.json())
               .then(data => {
-                  
-                  document.getElementById('log').textContent += JSON.stringify(data) + '\n'; // 显示下载结果
+                  const now = new Date();
+                  const formattedTime2 = new Intl.DateTimeFormat('zh-CN', {year: 'numeric', month: '2-digit',day: '2-digit', hour: '2-digit',minute: '2-digit',second: '2-digit'}).format(now);
+                  const text = "\n"+formattedTime2 + ":\n" + JSON.stringify(data) + '\n'
+                  document.getElementById('log').textContent += text; // 显示下载结果
               })
               .catch(error => {
                   console.error('Error:', error);

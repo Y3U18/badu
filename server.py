@@ -5,11 +5,12 @@ import time
 from urllib.parse import urlparse, parse_qs
 import requests
 import os
+import re
 
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def fetch_tiktok_video(item_id, language='zh-CN'):
+def fetch_tiktok_video(item_id, language='zh-CN',  retry=5):
     url = "https://www.tiktok.com/player/api/v1/items"
     params = {
         "item_ids": item_id,
@@ -32,45 +33,65 @@ def fetch_tiktok_video(item_id, language='zh-CN'):
         "history_len": "1",
         "security_verification_aid": ""
     }
-    # 发送GET请求
-    response = requests.get(url, params=params)
-    # 检查响应状态码
-    if response.status_code == 200:
-        # 将响应内容解析为JSON
-        return response.json()
-    else:
-        return {"error": f"请求失败，状态码：{response.status_code}"}
 
-def download_file(url, filename):
-    dir_path = os.path.dirname(filename)
-    if not os.path.exists(dir_path):
-        os.makedirs(dir_path)
+    for times in range(retry) :
+        try:
+            response = requests.get(url, params=params)
+            if response.status_code == 200:
+                return response.json()
+        except Exception as e:
+            logging.error(f"cannont fetch_tiktok_video detail err: {e} item_id {item_id}")
+    return None
 
-    # 发送HTTP GET请求
-    response = requests.get(url)
     
-    # 检查请求是否成功
-    if response.status_code == 200:
-        # 打开一个文件用于写入
-        with open(filename, 'wb') as file:
-            # 将内容写入文件
-            file.write(response.content)
-        print(f"文件已下载到：{filename}")
-    else:
-        print("文件下载失败")
+def download_file(url, filename, retry=5):
+    dir_path = os.path.dirname(filename)
+    if  os.path.exists(dir_path):
+        return True
+    os.makedirs(dir_path)
+    
+    for times in range(retry) :
+        try:
+            response = requests.get(url)
+            if response.status_code == 200:
+                with open(filename, 'wb') as file:
+                    file.write(response.content)
+                return True
+        except Exception as e:
+            logging.error(f"download failed err: {e} url {url}")
+    return False
 
-def download_videos(url, name):
-    parsed_url = urlparse(url)
-    path = parsed_url.path
-    video_id = path.split('/')[-1]
+def download_video(name, link):
+    result = {'ok':False, "link":link}
+    match = re.search(r'\d{19}', link)
+
+    # 如果找到匹配项，打印结果
+    if not match:
+        result["msg"] = "not found video_id"
+        return result
+    
+    video_id = match.group()
     logging.info(f"downloading video_id:{video_id}")
-    result = fetch_tiktok_video(video_id)
-    logging.info(f"result{result}")
-    vedio_url =  result['items'][0]['video_info']['url_list'][0]
+    
+    
+    video_detail = fetch_tiktok_video(video_id)
+    if video_detail['status_code'] != 0:
+        result["msg"] = f"fetch_tiktok_video failed {video_detail['status_msg']}"
+        return result
+    
+    vedio_url =  video_detail['items'][0]['video_info']['url_list'][0]
+    desc = video_detail['items'][0]['desc']
     logging.info(f"downloading  vedio_url:{vedio_url}")
     date = time.strftime("%Y%m%d", time.localtime())
     download_file(vedio_url, f"tk_videos/{date}/{name}/{video_id}.mp4")
-    return f"http://120.79.221.205:6800/tk_videos/{date}/{name}/{video_id}.mp4"
+    # 打开文件，如果文件不存在则创建，'a'模式表示追加模式
+    with open(f"tk_videos/{date}/{name}/{video_id}.txt", 'a') as file:
+        file.write(f'{desc}\n')
+    logging.info(f"please go to http://120.79.221.205:6801/files/tk_videos/{date}/{name}/")
+    result['ok']  = True
+    return result
+    
+    
     
 @app.route('/', methods=['GET'])
 def index():
@@ -89,19 +110,28 @@ def down_tk_video():
     if url is None:
         return jsonify({"error": "No url provided"}), 400
     vedio_urls=[]
-    cloud_url = download_videos(url, name)
+    cloud_url = download_video(name, url)
     vedio_urls.append(cloud_url)
 
     return jsonify({"ok": True, "vedio_urls": vedio_urls})
 
 @app.route('/download', methods=['POST'])
 def download():
-    product_name = request.form['product_name']
+    product_name = request.form['product_name'] 
+    if product_name is None or len(product_name) == 0 :
+        return jsonify({"error": "No product_name provided"}), 400
     product_links = request.form['product_link']
-    vedio_urls=[]
-    cloud_url = download_videos(product_links,product_name)
-    vedio_urls.append(cloud_url)
-    return jsonify({"ok": True, "vedio_urls": vedio_urls}) 
+    if product_links is None:
+        return jsonify({"error": "No product_links provided"}), 400
+    
+    logging.info(f"product_name:{product_name}")
+    data = []
+    links = product_links.splitlines(keepends=False)
+    for link  in links:
+        # 使用正则表达式匹配数字序列
+        download_res =  download_video(product_name, link)
+        data.append(download_res)
+    return jsonify({"ok": True, "data": data})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=5001, debug=True)
