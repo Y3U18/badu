@@ -46,9 +46,8 @@ def fetch_tiktok_video(item_id, language='zh-CN',  retry=5):
     
 def download_file(url, filename, retry=5):
     dir_path = os.path.dirname(filename)
-    if  os.path.exists(dir_path):
-        return True
-    os.makedirs(dir_path)
+    if  not os.path.exists(dir_path):
+        os.makedirs(dir_path)
     
     for times in range(retry) :
         try:
@@ -83,11 +82,14 @@ def download_video(name, link):
     desc = video_detail['items'][0]['desc']
     logging.info(f"downloading  vedio_url:{vedio_url}")
     date = time.strftime("%Y%m%d", time.localtime())
-    download_file(vedio_url, f"tk_videos/{date}/{name}/{video_id}.mp4")
-    # 打开文件，如果文件不存在则创建，'a'模式表示追加模式
-    with open(f"tk_videos/{date}/{name}/{video_id}.txt", 'a') as file:
+    if not download_file(vedio_url, f"tk_videos/{date}/{name}/{video_id}.mp4") :
+        result["msg"] = f"download_file failed url:{vedio_url}"
+        return result
+    
+    with open(f"tk_videos/{date}/{name}/text", 'a') as file:
         file.write(f'{desc}\n')
     logging.info(f"please go to http://120.79.221.205:6801/files/tk_videos/{date}/{name}/")
+    
     result['ok']  = True
     return result
     
@@ -119,19 +121,17 @@ def down_tk_video():
 def download():
     product_name = request.form['product_name'] 
     if product_name is None or len(product_name) == 0 :
-        return jsonify({"error": "No product_name provided"}), 400
+        return jsonify({"ok": False, "error": "No product_name provided"})
     product_links = request.form['product_link']
-    if product_links is None:
-        return jsonify({"error": "No product_links provided"}), 400
+    if product_links is None or len(product_name) == 0:
+        return jsonify({"ok": False, "error": "No product_link provided"})
     
     logging.info(f"product_name:{product_name}")
     data = []
     links = product_links.splitlines(keepends=False)
     for link  in links:
-        # 使用正则表达式匹配数字序列
-        download_res =  download_video(product_name, link)
-        data.append(download_res)
+        data.append(download_video(product_name, link))
     return jsonify({"ok": True, "data": data})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0',port=5001, debug=True)
+    app.run(host='0.0.0.0',port=5001, debug=False)
