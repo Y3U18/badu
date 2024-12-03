@@ -77,21 +77,26 @@ def download_video(name, link):
     if video_detail['status_code'] != 0:
         result["msg"] = f"fetch_tiktok_video failed {video_detail['status_msg']}"
         return result
-    
-    vedio_url =  video_detail['items'][0]['video_info']['url_list'][0]
-    desc = video_detail['items'][0]['desc']
-    logging.info(f"downloading  vedio_url:{vedio_url}")
-    date = time.strftime("%Y%m%d", time.localtime())
-    if not download_file(vedio_url, f"tk_videos/{date}/{name}/{video_id}.mp4") :
-        result["msg"] = f"download_file failed url:{vedio_url}"
+    try:
+        vedio_url =  video_detail['items'][0]['video_info']['url_list'][0]
+        desc = video_detail['items'][0]['desc']
+        
+        logging.info(f"downloading  vedio_url:{vedio_url}")
+        date = time.strftime("%Y%m%d", time.localtime())
+        if not download_file(vedio_url, f"tk_videos/{date}/{name}/{video_id}.mp4") :
+            result["msg"] = f"download_file failed url:{vedio_url}"
+            return result
+        
+        with open(f"tk_videos/{date}/{name}/text", 'a') as file:
+            file.write(f'{desc}\n')
+        logging.info(f"please go to http://120.79.221.205:6801/files/tk_videos/{date}/{name}/")
+        
+        result['ok']  = True
         return result
-    
-    with open(f"tk_videos/{date}/{name}/text", 'a') as file:
-        file.write(f'{desc}\n')
-    logging.info(f"please go to http://120.79.221.205:6801/files/tk_videos/{date}/{name}/")
-    
-    result['ok']  = True
-    return result
+    except Exception as e:
+        result["msg"] = f"fetch_tiktok_video failed {e}"
+        logging.error("download_video ")
+        return result
     
     
     
