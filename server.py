@@ -196,7 +196,7 @@ def extract_product_id(url):
     
 @app.route('/download', methods=['POST'])
 def download():
-    product_link = request.form['product_name'] 
+    product_link = request.form['product_link'] 
     #product_link = "https://www.fastmoss.com/zh/e-commerce/detail/1729488621914722962"
     if product_link is None or len(product_link) == 0 :
         return jsonify({"ok": False, "error": "No product_link provided"}) 
