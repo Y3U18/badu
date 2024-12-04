@@ -12,25 +12,15 @@
         input[type=text],
         textarea {
             width: 800px;
-            /* 设置输入框的宽度 */
             padding: 10px;
-            /* 设置输入框内边距 */
             margin: 10px 0;
-            /* 设置外边距 */
             display: block;
-            /* 使得输入框独占一行 */
             border: 1px solid #ccc;
-            /* 设置边框 */
             border-radius: 4px;
-            /* 设置边框圆角 */
             box-sizing: border-box;
-            /* 盒模型 */
             overflow: auto;
-            /* 设置滚动条 */
             white-space: pre-wrap;
-            /* 保持换行 */
             overflow-y: scroll;
-            /* 当内容超出高度时，显示垂直滚动条 */
         }
         input[type=submit] {
             padding: 10px 20px;
@@ -40,39 +30,31 @@
             border-radius: 4px;
             cursor: pointer;
             display: block;
-            /* 使得提交按钮独占一行 */
             margin-top: 20px;
-            /* 与上方元素间隔 */
         }
 
         input[type=submit]:hover {
             background-color: #45a049;
         }
 
-        pre {
+        .log-container {
             background-color: #f5f5f5;
             border: 1px solid #ddd;
             padding: 10px;
             border-radius: 4px;
             margin-top: 20px;
             width: 800px;
-            /* 设置日志框的宽度 */
             height: 250px;
-            /* 设置日志框的高度为300px */
             overflow: auto;
-            /* 设置滚动条 */
             white-space: pre-wrap;
-            /* 保持换行 */
             overflow-y: scroll;
-            /* 当内容超出高度时，显示垂直滚动条 */
+            font-family: monospace; /* 保持等宽字体 */
         }
 
         textarea {
             height: 250px;
-            /* 设置文本域的高度 */
             vertical-align: top;
             resize: vertical;
-            /* 允许垂直方向上调整大小 */
         }
     </style>
 </head>
@@ -81,12 +63,10 @@
     <h2>请输入产品信息</h2>
     <form id="downloadForm">
         产品名: <input type="text" name="product_name" placeholder="请输入产品名"><br>
-        产品链接:<br>
-        <textarea name="product_link" placeholder="请输入产品链接，多行支持"></textarea><br>
         <input type="submit" value="下载">
     </form>
     <h2>日志</h2>
-    <pre id="log"></pre>
+    <div class="log-container" id="log"></div>
     <script>
         document.getElementById('downloadForm').addEventListener('submit', function (event) {
             event.preventDefault(); // 阻止表单默认提交行为
@@ -96,29 +76,33 @@
                 body: formData
             }).then(response => response.json())   
                 .then(data => {
-                    console.log(JSON.stringify(data))
+                    console.log(JSON.stringify(data));
                     const now = new Date();
-                    const formattedTime2 = new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(now);
-                    let text = "\n" + formattedTime2 + ":\n"
+                    const formattedTime = new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(now);
+                    let logElement = document.getElementById('log');
+                    logElement.innerHTML += `\n${formattedTime}:\n`;
                     if (data.ok) {
-                        data.data.forEach((element) => {
+                        data.data.detail.forEach((element) => {
                             if(element.ok){
-                                text += element.link  + " download yes\n"
+                                logElement.innerHTML += `${element.video_id} download yes<br>`;
                             }else{
-                                text += element.link  + " download no \n"
-                            }  
-                        })                        
-                    }else {
-                        text += data.error
+                                logElement.innerHTML += `${element.video_id} download no<br>`;
+                            }
+                        });
+                        if(data.data.link) {
+                            const link = `<a href="${data.data.link}" target="_blank" style="color: blue; text-decoration: underline;">${data.data.link}</a>`;
+                            logElement.innerHTML += link + '\n';          
+                        }
+                    } else {
+                        logElement.innerHTML += data.error + '\n';
                     }
-                    document.getElementById('log').textContent += text; // 显示下载结果
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    document.getElementById('log').textContent += '下载请求失败\n';
+                    document.getElementById('log').innerHTML += '下载请求失败<br>';
                 });
         });
     </script>
 </body>
 
-</htmlxxs
+</html>

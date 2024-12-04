@@ -2,7 +2,7 @@
 import requests
 
 # 目标URL
-url = 'http://localhost:5001/down_tk_video'
+url = 'http://localhost:5002/down_tk_video'
 
 # POST请求的数据
 json_data = {
