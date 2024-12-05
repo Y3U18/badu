@@ -1,26 +1,20 @@
 <!doctype html>
 <html>
-
 <head>
-    <title>BaDu产品下载器</title>
+    <title>产品下载器</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 40px;
         }
-
-        input[type=text],
-        textarea {
-            width: 800px;
-            padding: 10px;
-            margin: 10px 0;
-            display: block;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-            overflow: auto;
-            white-space: pre-wrap;
-            overflow-y: scroll;
+        input[type=text], textarea {
+            width: 800px; /* 设置输入框的宽度 */
+            padding: 10px; /* 设置输入框内边距 */
+            margin: 10px 0; /* 设置外边距 */
+            display: block; /* 使得输入框独占一行 */
+            border: 1px solid #ccc; /* 设置边框 */
+            border-radius: 4px; /* 设置边框圆角 */
+            box-sizing: border-box; /* 盒模型 */
         }
         input[type=submit] {
             padding: 10px 20px;
@@ -32,11 +26,10 @@
             display: block;
             margin-top: 20px;
         }
-
         input[type=submit]:hover {
             background-color: #45a049;
         }
-
+        
         .log-container {
             background-color: #f5f5f5;
             border: 1px solid #ddd;
@@ -52,13 +45,12 @@
         }
 
         textarea {
-            height: 250px;
+            height: 100px; /* 设置文本域的高度 */
             vertical-align: top;
-            resize: vertical;
+            resize: vertical; /* 允许垂直方向上调整大小 */
         }
     </style>
 </head>
-
 <body>
     <h2>请输入产品信息</h2>
     <form id="downloadForm">
@@ -82,15 +74,8 @@
                     let logElement = document.getElementById('log');
                     logElement.innerHTML += `\n${formattedTime}:\n`;
                     if (data.ok) {
-                        data.data.detail.forEach((element) => {
-                            if(element.ok){
-                                logElement.innerHTML += `${element.video_id} download yes<br>`;
-                            }else{
-                                logElement.innerHTML += `${element.video_id} download no<br>`;
-                            }
-                        });
-                        if(data.data.link) {
-                            const link = `<a href="${data.data.link}" target="_blank" style="color: blue; text-decoration: underline;">${data.data.link}</a>`;
+                        if(data.link) {
+                            const link = `<a href="${data.link}" target="_blank" style="color: blue; text-decoration: underline;">${data.link}</a>`;
                             logElement.innerHTML += link + '\n';          
                         }
                     } else {
@@ -102,7 +87,15 @@
                     document.getElementById('log').innerHTML += '下载请求失败<br>';
                 });
         });
+
+        function updateLog() {
+            fetch('/log')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('log').textContent += "\n" +data;
+                });
+        }
+        //setInterval(updateLog, 3000); // 每2秒更新日志
     </script>
 </body>
-
 </html>
