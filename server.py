@@ -219,23 +219,37 @@ def get_task_status():
 
 @app.route('/download', methods=['POST'])
 def download():
-    product_link = request.form['product_link'] 
-    if product_link is None or len(product_link) == 0 :        
-        return jsonify({"ok": False, "error": "No product_link provided"}) 
-    product_id = extract_product_id(product_link)
-    logging.info(f"product_link:{product_link} product_id:{product_id}")
+    product_links = request.form['product_links'] 
+    if product_links is None or len(product_links) == 0 :        
+        return jsonify({"ok": False, "error": "No product_links provided"}) 
     
-   
-    res = fetch_videos(product_id, 1)
-    if res['code'] != 200:
-        return jsonify({"ok": False, "error": res['msg']}) 
-    
-    task_queue.put((product_id, res['data']['list']))
-    date = time.strftime("%Y%m%d", time.localtime())    
-    
-    link = f"http://120.79.221.205:6801/files/tk_videos/{date}/{product_id}/"
+    links = product_links.splitlines(keepends=False)
 
-    return jsonify({"ok": True, 'link': link, 'product_id': product_id})
+    product_ids = []
+    for link  in links:
+        r = {"ok": False, 'link': link}
+        product_id = extract_product_id(link)
+        if product_id == None:
+            r['msg'] =  "link has no product_id"
+            return jsonify({"ok": False, "error": f"{link} no product_id"}) 
+        product_ids.append(product_id)
+        
+    rs =[]
+    for product_id  in product_ids:
+        r = {"ok": False, 'link': link, 'product_id':product_id}
+
+        res = fetch_videos(product_id, 1)
+        if res['code'] == 200:
+            # task_queue.put((product_id, res['data']['list']))
+            r['ok'] = True
+            date = time.strftime("%Y%m%d", time.localtime())
+            r["save_link"] = f"http://120.79.221.205:6801/files/tk_videos/{date}/{product_id}/"
+        else:
+            r['msg'] = res['msg']
+
+        rs.append(r)
+        
+    return jsonify({'ok':True, 'data': rs})
 
 def app_run():
     logging.info("Flask app is running")
