@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文案生成器</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f7f7f7;
+    }
+
+    .input-container {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>文案生成器</h2>
+
+  <div class="input-container">
+    <label for="productName">产品名:</label>
+    <input type="text" id="productName" placeholder="请输入产品名">
+  </div>
+
+  <div class="input-container">
+    <label for="price">产品价格:</label>
+    <input type="number" id="price" placeholder="Enter price">
+  </div>
+
+  <button onclick="generateCopyText()">生成</button>
+
+  <table id="copyTable">
+    <thead>
+      <tr>
+        <th>文案</th>
+        <th>复制</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- 动态生成的文案和按钮将插入这里 -->
+    </tbody>
+  </table>
+
+  <script>
+    function showNonBlockingAlert(message) {
+      var alertDiv = document.createElement('div');
+      alertDiv.style.position = 'fixed';
+      alertDiv.style.top = '20px';
+      alertDiv.style.right = '20px';
+      alertDiv.style.padding = '10px';
+      alertDiv.style.backgroundColor = '#f8d7da';
+      alertDiv.style.color = '#721c24';
+      alertDiv.style.border = '1px solid #f5c6cb';
+      alertDiv.style.zIndex = '1000';
+      alertDiv.textContent = message;
+
+      document.body.appendChild(alertDiv);
+
+      setTimeout(function () {
+        document.body.removeChild(alertDiv);
+      }, 5000);
+    }
+
+    function generateCopyText() {
+      var productName = document.getElementById('productName').value.trim();
+      var price = document.getElementById('price').value.trim();
+
+      if (!productName || !price) {
+        showNonBlockingAlert('请填写产品名和价格');
+        return;
+      }
+
+      var copywritings = [
+        `＄${price} for ${productName} is amazing! It's on sale right now on the TikTok Shop!`,
+        `＃${price} for the ${productName} is absolutely insane! It's normally $${price*2} if you didn't know it's on sale right now on the TikTok Shop!`
+      ];
+
+      var tableBody = document.getElementById('copyTable').getElementsByTagName('tbody')[0];
+      tableBody.innerHTML = ''; // 清空现有的文案
+
+      copywritings.forEach(function(copywriting, index) {
+        var row = tableBody.insertRow();
+        var cell = row.insertCell(0);
+        var buttonCell = row.insertCell(1);
+
+        cell.textContent = copywriting;
+
+        var copyButton = document.createElement('button');
+        copyButton.textContent = '复制';
+        copyButton.onclick = function() {
+          copyToClipboard(copywriting);
+        };
+        buttonCell.appendChild(copyButton);
+      });
+    }
+
+    function copyToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(function() {
+          console.log('Copying to clipboard was successful!');
+          showNonBlockingAlert('文案已复制到剪贴板！');
+        }, function(err) {
+          console.error('Could not copy text: ', err);
+          showNonBlockingAlert('复制到剪贴板失败！');
+        });
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          const successful = document.execCommand('copy');
+          const msg = successful ? 'successful' : 'unsuccessful';
+          console.log('Fallback: Copying text command was ' + msg);
+          showNonBlockingAlert(successful ? '文案已复制到剪贴板！' : '复制到剪贴板失败！');
+        } catch (err) {
+          console.error('Fallback: Oops, unable to copy', err);
+          showNonBlockingAlert('复制到剪贴板失败！');
+        }
+        document.body.removeChild(textArea);
+      }
+    }
+  </script>
+
+</body>
+
+</html>

@@ -198,6 +198,10 @@ def consumer_thread(task_queue):
 def index():
     return render_template('index.html')
 
+@app.route('/script', methods=['GET'])
+def script():
+    return render_template('script.html')
+
 def extract_product_id(url):
     pattern = r'\d+$'
     match = re.search(pattern, url)
