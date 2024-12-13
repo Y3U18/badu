@@ -3,7 +3,7 @@ from datetime import datetime
 app = Flask(__name__)
 import time
 from urllib.parse import urlparse, parse_qs
-import requests
+from curl_cffi import requests
 import os
 import re
 from concurrent.futures import ThreadPoolExecutor
@@ -75,7 +75,7 @@ def fetch_videos(product_id, page):
             "product_id": product_id,
             'order': "2,2",
             'd_type': 0,
-            "pagesize": 10,
+            "pagesize": 5,
             'is_promoted':-1,
             'date_type':28,
             "_time": 1733218606,
@@ -86,55 +86,50 @@ def fetch_videos(product_id, page):
             'utm_south': 'google',
             'utm_id': 'ggproduct',
             '_src': '',
-            'fp_visid': '452a4dbde35177302ee92f199b5b18dc',
-            'fd_id': 'sH4tmUr5A7gpiW8yRe1qCnSwDGOocN6J',
-            '_fbp': 'fb.1.1732692190061.123470053690447508',
-            '_ga': 'GA1.1.1177071262.1732692199',
+            'fp_visid': '68e07a174825b8bc0ee0769ef6ee03fc',
+            'fd_id': 'UrfKhQSzs6eI415nBOjF8TkCMladVAqP',
+            'Hm_lvt_6ada669245fc6950ae4a2c0a86931766': '1732585434',
+            'HMACCOUNT': 'DE784806A161133E',
+            '_fbp': 'fb.1.1732585434257.605751515129595828',
+            '_ga': 'GA1.1.468739000.1732585453',
             '_tt_enable_cookie': '1',
-            '_ttp': 'mNn9Fu0EZ072X7gphbWsyaMUg4n.tt.1',
-            '_ss_s_uid': 'cea9581a6d29086e49cb688dbc0de6af',
+            '_ttp': 'bmZ0vYQWnabrDogGvJTDTpl5yFa.tt.1',
             'utm_lang': 'zh',
-            'Hm_lvt_6ada669245fc6950ae4a2c0a86931766': '1732692180,1732754778',
-            'HMACCOUNT': '25778556149293FF',
-            '_gcl_aw': 'GCL.1732841234.CjwKCAiAl4a6BhBqEiwAqvrqutdN-l76yWm3WXzSjKe8yN5-2e3csWm4GsvvO-jQ_CK17mHc5HCcgBoCjLYQAvD_BwE',
+            '_ss_s_uid': '8ea7c8961ea34162544ea58a6f611740',
+            '_gcl_aw': 'GCL.1733106169.CjwKCAiAl4a6BhBqEiwAqvrqutdN-l76yWm3WXzSjKe8yN5-2e3csWm4GsvvO-jQ_CK17mHc5HCcgBoCjLYQAvD_BwE',
             'free_trial': 'FreeTrialFalse',
-            '__stripe_mid': 'cc75a684-38d8-4efd-aca1-7d2e41959cd7484817',
-            '_gcl_au': '1.1.109408670.1732692199.1897852172.1733467492.1733467868',
-            'fd_tk_exp': '1734764019',
-            'fd_tk': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzQ3NjQwMTksInN1YiI6IjlhNTA5YTk2OWU3MTM5ZTdkYThlMmEwYjk5MWY3ZjJmIiwibmJmIjoxNzMzNDY4MDE5LCJhdWQiOnsidWlkIjo5NDY3MDIzLCJ1bmlvbmlkIjoiIiwibWNfb3BlbmlkIjoiIiwibmlja25hbWUiOiJGYXN0TW9zc-eUqOaItyIsInJlZ2lvbiI6IlVTIiwiY3JlYXRlZF9hdCI6MTczMzQ2ODAxOCwiY3JlYXRlZF9kYXRlIjoiMjAyNC0xMi0wNiIsImxvZ2luX3NvdXJjZSI6InBjIiwidmlzaXRvcl9pZCI6IjQ1MmE0ZGJkZTM1MTc3MzAyZWU5MmYxOTliNWIxOGRjIiwiaXAiOiI1OC4yNTEuMjAuMjEwIiwiZG9tYWluIjoid3d3LmZhc3Rtb3NzLmNvbSIsImZwX3Zpc2lkIjoiYjg3NmZlMzdhNTJlNmQ5NTI5ZTBlYmE0ODgwNTZhMTIiLCJjcmVhdGVfdGltZSI6MTczMzQ2ODAxOX0sImlhdCI6MTczMzQ2ODAxOSwianRpIjoiOWE1MDlhOTY5ZTcxMzllN2RhOGUyYTBiOTkxZjdmMmYiLCJpc3MiOiJ3d3cuZmFzdG1vc3MuY29tIiwic3RhdHVzIjoxLCJkYXRhIjpudWxsfQ.DzassTr5jAC0hZ6yRY9NGcH6AvuJKOqGygv68QqWfC4',
+            '_gcl_au': '1.1.1894929420.1732585453.1048364009.1734007656.1734007655',
+            'fd_tk_exp': '1735303764',
+            'fd_tk': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzUzMDM3NjQsInN1YiI6ImEzNGYwMTIzZTQ5OTlmMTc5MjZmYTM5ZTQ3Nzc0NzA0IiwibmJmIjoxNzM0MDA3NzY0LCJhdWQiOnsidWlkIjo5Njg4OTIxLCJ1bmlvbmlkIjoiIiwibWNfb3BlbmlkIjoiIiwibmlja25hbWUiOiJGYXN0TW9zc-eUqOaItyIsInJlZ2lvbiI6IlVTIiwiY3JlYXRlZF9hdCI6MTczNDAwNzc2MywiY3JlYXRlZF9kYXRlIjoiMjAyNC0xMi0xMiIsImxvZ2luX3NvdXJjZSI6InBjIiwidmlzaXRvcl9pZCI6IjY4ZTA3YTE3NDgyNWI4YmMwZWUwNzY5ZWY2ZWUwM2ZjIiwiaXAiOiIyNy4zOC4xOTMuMjMxIiwiZG9tYWluIjoid3d3LmZhc3Rtb3NzLmNvbSIsImZwX3Zpc2lkIjoiOTQyOGJkMzU5NmE2N2ZlOTUyYmY2M2JkMDE5ODU0MDIiLCJjcmVhdGVfdGltZSI6MTczNDAwNzc2NH0sImlhdCI6MTczNDAwNzc2NCwianRpIjoiYTM0ZjAxMjNlNDk5OWYxNzkyNmZhMzllNDc3NzQ3MDQiLCJpc3MiOiJ3d3cuZmFzdG1vc3MuY29tIiwic3RhdHVzIjoxLCJkYXRhIjpudWxsfQ.glLPoVGVvGq04aQdPyenzCGdilFyUQEfHBcw9-1LuNw',
             'NEXT_LOCALE': 'zh',
             'region': 'Global',
-            '_ga_J8P3E5KDGJ': 'GS1.1.1733467468.7.1.1733468144.39.0.525138161',
-            '_ga_GD8ST04HB5': 'GS1.1.1733467468.7.1.1733468144.39.0.1415477703',
-            'Hm_lpvt_6ada669245fc6950ae4a2c0a86931766': '1733468231',
-            '_uetsid': '31d2edc0b05411ef859059c474939c77|d0gbhu|2|frh|0|1797',
-            '_uetvid': '6ec88190ac9011ef9f65177761bd263a|1sa5pg0|1733468232752|23|1|bat.bing.com/p/insights/c/k',
+            '_ga_J8P3E5KDGJ': 'GS1.1.1734007652.19.1.1734007781.42.0.900730503',
+            '_ga_GD8ST04HB5': 'GS1.1.1734007652.19.1.1734007781.42.0.512634539',
+            'Hm_lpvt_6ada669245fc6950ae4a2c0a86931766': '1734007840',
+            '_uetsid': '4195b8a0b88711ef93601ba472862014|qewdtw|2|frn|0|1807',
+            '_uetvid': 'e5a098e0ab9711efb467d595a47500a2|os2b6h|1734007840926|6|1|bat.bing.com/p/insights/c/k',
         }
 
+        
         headers = {
-            'accept': 'application/json, text/plain, */*',
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
             'accept-language': 'zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7',
-            # 'cookie': 'utm_south=google; utm_id=ggproduct; _src=; fp_visid=452a4dbde35177302ee92f199b5b18dc; fd_id=sH4tmUr5A7gpiW8yRe1qCnSwDGOocN6J; _fbp=fb.1.1732692190061.123470053690447508; _ga=GA1.1.1177071262.1732692199; _tt_enable_cookie=1; _ttp=mNn9Fu0EZ072X7gphbWsyaMUg4n.tt.1; _ss_s_uid=cea9581a6d29086e49cb688dbc0de6af; utm_lang=zh; Hm_lvt_6ada669245fc6950ae4a2c0a86931766=1732692180,1732754778; HMACCOUNT=25778556149293FF; _gcl_aw=GCL.1732841234.CjwKCAiAl4a6BhBqEiwAqvrqutdN-l76yWm3WXzSjKe8yN5-2e3csWm4GsvvO-jQ_CK17mHc5HCcgBoCjLYQAvD_BwE; free_trial=FreeTrialFalse; __stripe_mid=cc75a684-38d8-4efd-aca1-7d2e41959cd7484817; _gcl_au=1.1.109408670.1732692199.1897852172.1733467492.1733467868; fd_tk_exp=1734764019; fd_tk=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzQ3NjQwMTksInN1YiI6IjlhNTA5YTk2OWU3MTM5ZTdkYThlMmEwYjk5MWY3ZjJmIiwibmJmIjoxNzMzNDY4MDE5LCJhdWQiOnsidWlkIjo5NDY3MDIzLCJ1bmlvbmlkIjoiIiwibWNfb3BlbmlkIjoiIiwibmlja25hbWUiOiJGYXN0TW9zc-eUqOaItyIsInJlZ2lvbiI6IlVTIiwiY3JlYXRlZF9hdCI6MTczMzQ2ODAxOCwiY3JlYXRlZF9kYXRlIjoiMjAyNC0xMi0wNiIsImxvZ2luX3NvdXJjZSI6InBjIiwidmlzaXRvcl9pZCI6IjQ1MmE0ZGJkZTM1MTc3MzAyZWU5MmYxOTliNWIxOGRjIiwiaXAiOiI1OC4yNTEuMjAuMjEwIiwiZG9tYWluIjoid3d3LmZhc3Rtb3NzLmNvbSIsImZwX3Zpc2lkIjoiYjg3NmZlMzdhNTJlNmQ5NTI5ZTBlYmE0ODgwNTZhMTIiLCJjcmVhdGVfdGltZSI6MTczMzQ2ODAxOX0sImlhdCI6MTczMzQ2ODAxOSwianRpIjoiOWE1MDlhOTY5ZTcxMzllN2RhOGUyYTBiOTkxZjdmMmYiLCJpc3MiOiJ3d3cuZmFzdG1vc3MuY29tIiwic3RhdHVzIjoxLCJkYXRhIjpudWxsfQ.DzassTr5jAC0hZ6yRY9NGcH6AvuJKOqGygv68QqWfC4; NEXT_LOCALE=zh; region=Global; _ga_J8P3E5KDGJ=GS1.1.1733467468.7.1.1733468144.39.0.525138161; _ga_GD8ST04HB5=GS1.1.1733467468.7.1.1733468144.39.0.1415477703; Hm_lpvt_6ada669245fc6950ae4a2c0a86931766=1733468231; _uetsid=31d2edc0b05411ef859059c474939c77|d0gbhu|2|frh|0|1797; _uetvid=6ec88190ac9011ef9f65177761bd263a|1sa5pg0|1733468232752|23|1|bat.bing.com/p/insights/c/k',
-            'fm-sign': '5294eb12ac777d6066f14537ea6a401c',
-            'lang': 'ZH_CN',
-            'priority': 'u=1, i',
-            'referer': 'https://www.fastmoss.com/zh/e-commerce/detail/1729463610654102324',
+            'cache-control': 'max-age=0',
+            # 'cookie': 'utm_south=google; utm_id=ggproduct; _src=; fp_visid=68e07a174825b8bc0ee0769ef6ee03fc; fd_id=UrfKhQSzs6eI415nBOjF8TkCMladVAqP; Hm_lvt_6ada669245fc6950ae4a2c0a86931766=1732585434; HMACCOUNT=DE784806A161133E; _fbp=fb.1.1732585434257.605751515129595828; _ga=GA1.1.468739000.1732585453; _tt_enable_cookie=1; _ttp=bmZ0vYQWnabrDogGvJTDTpl5yFa.tt.1; utm_lang=zh; _ss_s_uid=8ea7c8961ea34162544ea58a6f611740; _gcl_aw=GCL.1733106169.CjwKCAiAl4a6BhBqEiwAqvrqutdN-l76yWm3WXzSjKe8yN5-2e3csWm4GsvvO-jQ_CK17mHc5HCcgBoCjLYQAvD_BwE; free_trial=FreeTrialFalse; _gcl_au=1.1.1894929420.1732585453.1048364009.1734007656.1734007655; fd_tk_exp=1735303764; fd_tk=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzUzMDM3NjQsInN1YiI6ImEzNGYwMTIzZTQ5OTlmMTc5MjZmYTM5ZTQ3Nzc0NzA0IiwibmJmIjoxNzM0MDA3NzY0LCJhdWQiOnsidWlkIjo5Njg4OTIxLCJ1bmlvbmlkIjoiIiwibWNfb3BlbmlkIjoiIiwibmlja25hbWUiOiJGYXN0TW9zc-eUqOaItyIsInJlZ2lvbiI6IlVTIiwiY3JlYXRlZF9hdCI6MTczNDAwNzc2MywiY3JlYXRlZF9kYXRlIjoiMjAyNC0xMi0xMiIsImxvZ2luX3NvdXJjZSI6InBjIiwidmlzaXRvcl9pZCI6IjY4ZTA3YTE3NDgyNWI4YmMwZWUwNzY5ZWY2ZWUwM2ZjIiwiaXAiOiIyNy4zOC4xOTMuMjMxIiwiZG9tYWluIjoid3d3LmZhc3Rtb3NzLmNvbSIsImZwX3Zpc2lkIjoiOTQyOGJkMzU5NmE2N2ZlOTUyYmY2M2JkMDE5ODU0MDIiLCJjcmVhdGVfdGltZSI6MTczNDAwNzc2NH0sImlhdCI6MTczNDAwNzc2NCwianRpIjoiYTM0ZjAxMjNlNDk5OWYxNzkyNmZhMzllNDc3NzQ3MDQiLCJpc3MiOiJ3d3cuZmFzdG1vc3MuY29tIiwic3RhdHVzIjoxLCJkYXRhIjpudWxsfQ.glLPoVGVvGq04aQdPyenzCGdilFyUQEfHBcw9-1LuNw; NEXT_LOCALE=zh; region=Global; _ga_J8P3E5KDGJ=GS1.1.1734007652.19.1.1734007781.42.0.900730503; _ga_GD8ST04HB5=GS1.1.1734007652.19.1.1734007781.42.0.512634539; Hm_lpvt_6ada669245fc6950ae4a2c0a86931766=1734007889; _uetsid=4195b8a0b88711ef93601ba472862014|qewdtw|2|frn|0|1807; _uetvid=e5a098e0ab9711efb467d595a47500a2|os2b6h|1734007890311|7|1|bat.bing.com/p/insights/c/k',
+            'priority': 'u=0, i',
             'sec-ch-ua': '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
             'sec-ch-ua-mobile': '?0',
             'sec-ch-ua-platform': '"macOS"',
-            'sec-fetch-dest': 'empty',
-            'sec-fetch-mode': 'cors',
-            'sec-fetch-site': 'same-origin',
-            'source': 'pc',
+            'sec-fetch-dest': 'document',
+            'sec-fetch-mode': 'navigate',
+            'sec-fetch-site': 'none',
+            'sec-fetch-user': '?1',
+            'upgrade-insecure-requests': '1',
             'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
         }
-
-        response = requests.get(
-            url,
-            params=params,
-            cookies=cookies,
-            headers=headers,
-        )
+ 
+        response = requests.get(url,params=params,cookies=cookies,headers=headers,impersonate="chrome")
+        logging.info(response.text)
 
         # 检查请求是否成功
         if response.status_code != 200:
@@ -221,6 +216,7 @@ def get_task_status():
 
 @app.route('/download', methods=['POST'])
 def download():
+    logging.info("download")
     product_links = request.form['product_links'] 
     if product_links is None or len(product_links) == 0 :        
         return jsonify({"ok": False, "error": "No product_links provided"}) 
@@ -230,16 +226,21 @@ def download():
     product_ids = []
     for link  in links:
         r = {"ok": False, 'link': link}
-        product_id = extract_product_id(link)
-        if product_id == None:
-            r['msg'] =  "link has no product_id"
-            return jsonify({"ok": False, "error": f"{link} no product_id"}) 
-        product_ids.append(product_id)
-        
+        logging.info(link)
+        if '/e-commerce/detail/' in link:
+            product_id = extract_product_id(link)
+            if product_id == None:
+                r['msg'] =  "link has no product_id"
+                return jsonify({"ok": False, "error": f"{link} no product_id"}) 
+            product_ids.append(product_id)
+        else:
+            return jsonify({"ok": False, "error": f"{link} is not product link."}) 
+    logging.info(f"download {product_ids}")    
     rs =[]
     for product_id  in product_ids:
         r = {"ok": False, 'link': link, 'product_id':product_id}
         res = fetch_videos(product_id, 1)
+        logging.info('fetch_videos {res}')
         if res['code'] == 200:
             task_queue.put((product_id, res['data']['list']))
             r['ok'] = True
